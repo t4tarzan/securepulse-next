@@ -73,7 +73,7 @@ export function SignInContent() {
             className="w-full"
             variant="secondary"
             size="lg"
-            onClick={() => router.push("/stack-handler/signin")}
+            onClick={() => router.push("/handler/signin")}
           >
             Sign in with Email
           </Button>

@@ -6,6 +6,7 @@ export const stackClientApp = new StackClientApp({
   tokenStore: "nextjs-cookie",
   urls: {
     home: "/",
+    handler: "/handler",
     signIn: "/signin",
     signUp: "/signin",
     afterSignIn: "/dashboard",
