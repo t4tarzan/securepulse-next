@@ -6,6 +6,7 @@ import { GitBranch, ExternalLink, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RefreshReposButton } from "@/components/refresh-repos-button";
 import { ConnectGitHubButton } from "@/components/connect-github-button";
+import { ScanRepoButton } from "@/components/scan-repo-button";
 
 export default async function RepositoriesPage() {
   const user = await getCurrentUser();
@@ -78,10 +79,11 @@ export default async function RepositoriesPage() {
                   </div>
                   <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
                     <span>{repo._count.scans} scans</span>
-                    {repo.lastScanned && (
-                      <span>Last scanned: {repo.lastScanned.toLocaleDateString()}</span>
-                    )}
+                    <ScanRepoButton repoId={repo.id} repoName={repo.fullName} />
                   </div>
+                  {repo.lastScanned && (
+                    <p className="text-xs text-muted-foreground mt-1">Last scanned: {repo.lastScanned.toLocaleDateString()}</p>
+                  )}
                 </CardContent>
               </Card>
             ))}
