@@ -21,11 +21,11 @@ import { formatDate } from "@/lib/format-date";
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const statusColors: Record<string, string> = {
-  completed: "default",
-  failed: "destructive",
-  pending: "secondary",
-  running: "outline",
+const statusColors: Record<string, { variant: string; className: string }> = {
+  completed: { variant: "default", className: "bg-green-500 text-white hover:bg-green-600" },
+  failed: { variant: "destructive", className: "bg-red-500 text-white hover:bg-red-600" },
+  pending: { variant: "secondary", className: "bg-yellow-500 text-white hover:bg-yellow-600" },
+  running: { variant: "outline", className: "bg-blue-500 text-white hover:bg-blue-600 animate-pulse" },
 };
 
 const scanTypeLabels: Record<string, string> = {
@@ -203,7 +203,7 @@ export default async function ScansPage() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={statusColors[scan.status] as any ?? "secondary"}>
+                          <Badge className={statusColors[scan.status]?.className ?? "bg-gray-500 text-white"}>
                             {scan.status}
                           </Badge>
                         </TableCell>
@@ -265,7 +265,7 @@ export default async function ScansPage() {
                           {scanTypeLabels[scan.scanType] ?? scan.scanType}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+                          <Badge className={statusColors[scan.status]?.className ?? "bg-blue-500 text-white animate-pulse"}>
                             {scan.status}
                           </Badge>
                         </TableCell>
