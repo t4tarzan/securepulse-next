@@ -2,10 +2,10 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GitBranch, ExternalLink, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { GitBranch, ExternalLink, Container } from "lucide-react";
 import { RefreshReposButton } from "@/components/refresh-repos-button";
 import { ConnectGitHubButton } from "@/components/connect-github-button";
+import { ConnectDockerButton } from "@/components/connect-docker-button";
 import { ScanRepoButton } from "@/components/scan-repo-button";
 
 export default async function RepositoriesPage() {
@@ -40,6 +40,7 @@ export default async function RepositoriesPage() {
         <div className="flex gap-2">
           <RefreshReposButton />
           <ConnectGitHubButton />
+          <ConnectDockerButton />
         </div>
       </div>
 
@@ -92,35 +93,51 @@ export default async function RepositoriesPage() {
       </div>
 
       {/* Docker Images */}
-      {images.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold mb-3">
-            Docker Images ({images.length})
-          </h3>
+      <div>
+        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+          <Container className="h-5 w-5" />
+          Docker Images ({images.length})
+        </h3>
+        {images.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              No Docker images connected. Connect your Docker Hub account to get started.
+            </CardContent>
+          </Card>
+        ) : (
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
             {images.map((image) => (
-              <Card key={image.id}>
+              <Card key={image.id} className="hover:bg-muted/50 transition-colors">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium truncate">
-                    {image.imageName}
-                  </CardTitle>
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-sm font-medium truncate">
+                      {image.imageName}
+                    </CardTitle>
+                    <a href={image.imageUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                    </a>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-xs text-muted-foreground">
-                    {image.namespace}/{image.repository}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Badge variant="outline" className="text-xs">
+                      {image.namespace}
+                    </Badge>
+                    <span>{image.repository}</span>
                   </div>
                   <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
                     <span>{image._count.scans} scans</span>
-                    {image.lastScanned && (
-                      <span>Last: {image.lastScanned.toLocaleDateString()}</span>
-                    )}
+                    <ScanRepoButton repoId={image.id} repoName={image.imageName} />
                   </div>
+                  {image.lastScanned && (
+                    <p className="text-xs text-muted-foreground mt-1">Last scanned: {image.lastScanned.toLocaleDateString()}</p>
+                  )}
                 </CardContent>
               </Card>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
