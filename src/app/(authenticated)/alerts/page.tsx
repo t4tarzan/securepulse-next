@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AcknowledgeButton, ResolveButton } from "@/components/alert-actions";
+import { SeverityRingChart } from "@/components/severity-ring-chart";
+import { AlertStatsCards } from "@/components/alert-stats-cards";
 
 const severityColors: Record<string, string> = {
   critical: "destructive",
@@ -68,6 +70,12 @@ export default async function AlertsPage() {
   const openAlerts = alerts.filter((a) => a.status === "open");
   const acknowledgedAlerts = alerts.filter((a) => a.status === "acknowledged");
   const resolvedAlerts = alerts.filter((a) => a.status === "resolved");
+
+  // Calculate severity counts
+  const criticalCount = alerts.filter((a) => a.severity === "critical").length;
+  const highCount = alerts.filter((a) => a.severity === "high").length;
+  const mediumCount = alerts.filter((a) => a.severity === "medium").length;
+  const lowCount = alerts.filter((a) => a.severity === "low").length;
 
   function AlertTable({ items, showActions }: { items: typeof alerts; showActions: boolean }) {
     if (items.length === 0) {
@@ -159,8 +167,83 @@ export default async function AlertsPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Alerts</h2>
         <p className="text-muted-foreground">
-          Security vulnerabilities found in your repositories
+          Security vulnerabilities and findings
         </p>
+      </div>
+
+      {/* Stats Cards */}
+      <AlertStatsCards
+        open={openAlerts.length}
+        acknowledged={acknowledgedAlerts.length}
+        resolved={resolvedAlerts.length}
+        total={alerts.length}
+        critical={criticalCount}
+      />
+
+      {/* Severity Distribution */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <SeverityRingChart
+          critical={criticalCount}
+          high={highCount}
+          medium={mediumCount}
+          low={lowCount}
+        />
+        <Card className="md:col-span-2">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium mb-3">Alert Breakdown</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Open Alerts</span>
+                    <span className="text-sm font-medium">{openAlerts.length} ({alerts.length > 0 ? Math.round((openAlerts.length / alerts.length) * 100) : 0}%)</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Acknowledged</span>
+                    <span className="text-sm font-medium">{acknowledgedAlerts.length} ({alerts.length > 0 ? Math.round((acknowledgedAlerts.length / alerts.length) * 100) : 0}%)</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Resolved</span>
+                    <span className="text-sm font-medium">{resolvedAlerts.length} ({alerts.length > 0 ? Math.round((resolvedAlerts.length / alerts.length) * 100) : 0}%)</span>
+                  </div>
+                </div>
+              </div>
+              <div className="pt-4 border-t">
+                <h3 className="text-sm font-medium mb-3">Severity Breakdown</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-red-500" />
+                      <span className="text-sm text-muted-foreground">Critical</span>
+                    </div>
+                    <span className="text-sm font-medium">{criticalCount}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-orange-500" />
+                      <span className="text-sm text-muted-foreground">High</span>
+                    </div>
+                    <span className="text-sm font-medium">{highCount}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                      <span className="text-sm text-muted-foreground">Medium</span>
+                    </div>
+                    <span className="text-sm font-medium">{mediumCount}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500" />
+                      <span className="text-sm text-muted-foreground">Low</span>
+                    </div>
+                    <span className="text-sm font-medium">{lowCount}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Summary stats */}
