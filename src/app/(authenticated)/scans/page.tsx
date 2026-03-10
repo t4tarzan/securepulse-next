@@ -11,11 +11,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshScansButton } from "@/components/refresh-scans-button";
 import { ScanQueueControls } from "@/components/scan-queue-controls";
 import { ScanStatsCards } from "@/components/scan-stats-cards";
 import { RetryScanButton } from "@/components/retry-scan-button";
 import { DeleteScanButton } from "@/components/delete-scan-button";
+import { formatDate } from "@/lib/format-date";
 
 // Force dynamic rendering to show latest scans
 export const dynamic = 'force-dynamic';
@@ -116,9 +116,6 @@ export default async function ScansPage() {
             View scan history and results
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <RefreshScansButton />
-        </div>
       </div>
 
       {/* Queue Controls - Admin Only */}
@@ -218,7 +215,7 @@ export default async function ScansPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                          {scan.startedAt.toLocaleString()}
+                          {formatDate(scan.startedAt)}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDuration(scan.startedAt, scan.completedAt)}
@@ -273,7 +270,7 @@ export default async function ScansPage() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                          {scan.startedAt.toLocaleString()}
+                          {formatDate(scan.startedAt)}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDuration(scan.startedAt, new Date())}
@@ -325,7 +322,7 @@ export default async function ScansPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                          {scan.startedAt.toLocaleString()}
+                          {formatDate(scan.startedAt)}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDuration(scan.startedAt, scan.completedAt)}
@@ -375,7 +372,7 @@ export default async function ScansPage() {
                           {scan.errorMessage ?? "Unknown error"}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                          {scan.startedAt.toLocaleString()}
+                          {formatDate(scan.startedAt)}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">

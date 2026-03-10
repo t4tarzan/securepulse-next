@@ -6,6 +6,7 @@ import { GitBranch, Container, Scan, AlertTriangle, ShieldCheck, ShieldAlert } f
 import { ClickableStatCard } from "@/components/clickable-stat-card";
 import { SecurityScoreWidget } from "@/components/security-score-widget";
 import { ScanTrendChart } from "@/components/scan-trend-chart";
+import { formatDateShort } from "@/lib/format-date";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -235,7 +236,7 @@ export default async function DashboardPage() {
                         {scan.githubRepo?.fullName ?? scan.dockerImage?.imageName ?? "Unknown"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {scan.scanType} · {scan.startedAt.toLocaleDateString()}
+                        {scan.scanType} · {formatDateShort(scan.startedAt)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">

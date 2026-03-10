@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AcknowledgeButton, ResolveButton } from "@/components/alert-actions";
 import { SeverityRingChart } from "@/components/severity-ring-chart";
 import { AlertStatsCards } from "@/components/alert-stats-cards";
+import { formatDateShort } from "@/lib/format-date";
 
 const severityColors: Record<string, string> = {
   critical: "destructive",
@@ -138,7 +139,7 @@ export default async function AlertsPage() {
                 {alert.scan.scanType}
               </TableCell>
               <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                {alert.createdAt.toLocaleDateString()}
+                {formatDateShort(alert.createdAt)}
               </TableCell>
               {showActions && (
                 <TableCell className="text-right">

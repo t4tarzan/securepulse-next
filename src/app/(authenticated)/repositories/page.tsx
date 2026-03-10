@@ -8,6 +8,7 @@ import { ConnectGitHubButton } from "@/components/connect-github-button";
 import { ConnectDockerButton } from "@/components/connect-docker-button";
 import { ScanRepoButton } from "@/components/scan-repo-button";
 import { ClearAllReposButton } from "@/components/clear-all-repos-button";
+import { formatDateShort } from "@/lib/format-date";
 
 export default async function RepositoriesPage() {
   const user = await getCurrentUser();
@@ -115,7 +116,7 @@ export default async function RepositoriesPage() {
                     <ScanRepoButton repoId={repo.id} repoName={repo.fullName} />
                   </div>
                   {repo.lastScanned && (
-                    <p className="text-xs text-muted-foreground mt-1">Last scanned: {repo.lastScanned.toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Last scanned: {formatDateShort(repo.lastScanned)}</p>
                   )}
                 </CardContent>
               </Card>
@@ -183,7 +184,7 @@ export default async function RepositoriesPage() {
                     <ScanRepoButton repoId={image.id} repoName={image.imageName} />
                   </div>
                   {image.lastScanned && (
-                    <p className="text-xs text-muted-foreground mt-1">Last scanned: {image.lastScanned.toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Last scanned: {formatDateShort(image.lastScanned)}</p>
                   )}
                 </CardContent>
               </Card>
