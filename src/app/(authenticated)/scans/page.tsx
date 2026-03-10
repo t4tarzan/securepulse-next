@@ -10,6 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { RefreshScansButton } from "@/components/refresh-scans-button";
+
+// Force dynamic rendering to show latest scans
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const statusColors: Record<string, string> = {
   completed: "default",
@@ -19,6 +24,11 @@ const statusColors: Record<string, string> = {
 };
 
 const scanTypeLabels: Record<string, string> = {
+  "secret-scan": "Secret Scan",
+  "sast": "SAST",
+  "dependency": "Dependency Audit",
+  "full": "Full Scan",
+  // Legacy labels for backward compatibility
   "scan-github": "Secret Scan (TruffleHog)",
   "scan-docker": "Secret Scan (Gitleaks)",
   "scan-docker-vuln": "CVE Scan (Trivy)",
@@ -47,13 +57,27 @@ export default async function ScansPage() {
     take: 50,
   });
 
+  // Debug: log scan count
+  console.log(`[Scans Page] Found ${scans.length} scans for user ${user.id}`);
+  if (scans.length > 0) {
+    console.log(`[Scans Page] First scan:`, {
+      id: scans[0].id,
+      type: scans[0].scanType,
+      status: scans[0].status,
+      repoId: scans[0].githubRepoId,
+    });
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Scans</h2>
-        <p className="text-muted-foreground">
-          View scan history and results
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Scans</h2>
+          <p className="text-muted-foreground">
+            View scan history and results
+          </p>
+        </div>
+        <RefreshScansButton />
       </div>
 
       <Card>
@@ -72,8 +96,11 @@ export default async function ScansPage() {
             <TableBody>
               {scans.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    No scans yet. Trigger a scan from the Repositories page.
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <div className="text-muted-foreground">
+                      <p className="font-medium">No scans found</p>
+                      <p className="text-sm mt-1">Trigger a scan from the Repositories page to get started.</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
