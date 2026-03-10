@@ -9,8 +9,9 @@ import { ScanTrendChart } from "@/components/scan-trend-chart";
 import { formatDateShort } from "@/lib/format-date";
 
 export default async function DashboardPage() {
-  const user = await getCurrentUser();
-  if (!user) return null;
+  try {
+    const user = await getCurrentUser();
+    if (!user) return null;
 
   const [repoCount, imageCount, scanCount, alertCounts, completedScans, allAlerts] = await Promise.all([
     prisma.gitHubRepository.count({ where: { userId: user.id } }),
@@ -127,8 +128,8 @@ export default async function DashboardPage() {
     take: 5,
   });
 
-  return (
-    <div className="space-y-6">
+    return (
+      <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
         <p className="text-muted-foreground">
@@ -254,6 +255,22 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+      </div>
+    );
+  } catch (error) {
+    console.error('Dashboard error:', error);
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-bold">Unable to load dashboard</h2>
+          <p className="text-muted-foreground">
+            There was an error loading your dashboard. Please try refreshing the page.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {error instanceof Error ? error.message : 'Unknown error'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 }

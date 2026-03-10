@@ -3,8 +3,9 @@ import { prisma } from "@/lib/db";
 
 // Sync Stack Auth user to our database and return the DB user with role
 export async function getCurrentUser() {
-  const stackUser = await stackServerApp.getUser();
-  if (!stackUser) return null;
+  try {
+    const stackUser = await stackServerApp.getUser();
+    if (!stackUser) return null;
 
   let dbUser = await prisma.user.findFirst({
     where: {
@@ -46,17 +47,22 @@ export async function getCurrentUser() {
     });
   }
 
-  if (!dbUser) return null;
+    if (!dbUser) return null;
 
-  const role = dbUser.userRoles?.[0]?.role?.name || "developer";
-  return {
-    id: dbUser.id,
-    email: dbUser.email,
-    name: dbUser.name,
-    avatarUrl: dbUser.avatarUrl,
-    role,
-    stackAuthId: dbUser.stackAuthId,
-  };
+    const role = dbUser.userRoles?.[0]?.role?.name || "developer";
+    return {
+      id: dbUser.id,
+      email: dbUser.email,
+      name: dbUser.name,
+      avatarUrl: dbUser.avatarUrl,
+      role,
+      stackAuthId: dbUser.stackAuthId,
+    };
+  } catch (error) {
+    console.error('getCurrentUser error:', error);
+    // Return null instead of throwing to allow graceful degradation
+    return null;
+  }
 }
 
 // For API routes: require auth and return user or throw
