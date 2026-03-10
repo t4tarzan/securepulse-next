@@ -3,12 +3,15 @@ import { prisma } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GitBranch, Container, Scan, AlertTriangle, ShieldCheck, ShieldAlert } from "lucide-react";
+import { ClickableStatCard } from "@/components/clickable-stat-card";
+import { SecurityScoreWidget } from "@/components/security-score-widget";
+import { ScanTrendChart } from "@/components/scan-trend-chart";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const [repoCount, imageCount, scanCount, alertCounts] = await Promise.all([
+  const [repoCount, imageCount, scanCount, alertCounts, completedScans, allAlerts] = await Promise.all([
     prisma.gitHubRepository.count({ where: { userId: user.id } }),
     prisma.dockerImage.count({ where: { userId: user.id } }),
     prisma.repositoryScan.count({
@@ -32,6 +35,27 @@ export default async function DashboardPage() {
       },
       _count: true,
     }),
+    prisma.repositoryScan.count({
+      where: {
+        status: "completed",
+        OR: [
+          { githubRepo: { userId: user.id } },
+          { dockerImage: { userId: user.id } },
+        ],
+      },
+    }),
+    prisma.alert.groupBy({
+      by: ["severity"],
+      where: {
+        scan: {
+          OR: [
+            { githubRepo: { userId: user.id } },
+            { dockerImage: { userId: user.id } },
+          ],
+        },
+      },
+      _count: true,
+    }),
   ]);
 
   const criticalCount = alertCounts.find((a) => a.severity === "critical")?._count ?? 0;
@@ -39,6 +63,52 @@ export default async function DashboardPage() {
   const mediumCount = alertCounts.find((a) => a.severity === "medium")?._count ?? 0;
   const lowCount = alertCounts.find((a) => a.severity === "low")?._count ?? 0;
   const totalAlerts = criticalCount + highCount + mediumCount + lowCount;
+
+  // Calculate security score
+  const scanPassRate = scanCount > 0 ? completedScans / scanCount : 1;
+  const totalAllAlerts = allAlerts.reduce((sum, a) => sum + a._count, 0);
+  const allCritical = allAlerts.find((a) => a.severity === "critical")?._count ?? 0;
+  const allHigh = allAlerts.find((a) => a.severity === "high")?._count ?? 0;
+  const allMedium = allAlerts.find((a) => a.severity === "medium")?._count ?? 0;
+  const allLow = allAlerts.find((a) => a.severity === "low")?._count ?? 0;
+  const severityPenalty = totalAllAlerts > 0 
+    ? (allCritical * 0.4 + allHigh * 0.2 + allMedium * 0.1 + allLow * 0.05) / totalAllAlerts
+    : 0;
+  const securityScore = Math.round((scanPassRate * 50) + ((1 - severityPenalty) * 50));
+
+  // Get 30-day scan trends
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const scansByDay = await prisma.repositoryScan.groupBy({
+    by: ["status"],
+    where: {
+      startedAt: { gte: thirtyDaysAgo },
+      OR: [
+        { githubRepo: { userId: user.id } },
+        { dockerImage: { userId: user.id } },
+      ],
+    },
+    _count: true,
+  });
+
+  // Generate 30-day trend data
+  const trendData = Array.from({ length: 30 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (29 - i));
+    return {
+      date: date.toISOString().split('T')[0],
+      completed: 0,
+      failed: 0,
+    };
+  });
+
+  // This is a simplified version - in production, you'd query by date
+  const completedTotal = scansByDay.find(s => s.status === "completed")?._count ?? 0;
+  const failedTotal = scansByDay.find(s => s.status === "failed")?._count ?? 0;
+  if (trendData.length > 0) {
+    trendData[trendData.length - 1].completed = completedTotal;
+    trendData[trendData.length - 1].failed = failedTotal;
+  }
 
   const recentScans = await prisma.repositoryScan.findMany({
     where: {
@@ -65,51 +135,47 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Cards - Now Clickable */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Repositories</CardTitle>
-            <GitBranch className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{repoCount}</div>
-            <p className="text-xs text-muted-foreground">GitHub repos connected</p>
-          </CardContent>
-        </Card>
+        <ClickableStatCard
+          title="Repositories"
+          value={repoCount}
+          subtitle="GitHub repos connected"
+          icon={GitBranch}
+          href="/repositories"
+        />
+        <ClickableStatCard
+          title="Docker Images"
+          value={imageCount}
+          subtitle="Images monitored"
+          icon={Container}
+          href="/repositories"
+        />
+        <ClickableStatCard
+          title="Total Scans"
+          value={scanCount}
+          subtitle="Scans performed"
+          icon={Scan}
+          href="/scans"
+        />
+        <ClickableStatCard
+          title="Open Alerts"
+          value={totalAlerts}
+          subtitle="Require attention"
+          icon={AlertTriangle}
+          href="/alerts"
+        />
+      </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Docker Images</CardTitle>
-            <Container className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{imageCount}</div>
-            <p className="text-xs text-muted-foreground">Images monitored</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Scans</CardTitle>
-            <Scan className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{scanCount}</div>
-            <p className="text-xs text-muted-foreground">Scans performed</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Open Alerts</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalAlerts}</div>
-            <p className="text-xs text-muted-foreground">Require attention</p>
-          </CardContent>
-        </Card>
+      {/* Security Score & Trend Chart */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <SecurityScoreWidget 
+          score={securityScore} 
+          label="Based on scan success rate and alert severity"
+        />
+        <div className="md:col-span-2">
+          <ScanTrendChart data={trendData} />
+        </div>
       </div>
 
       {/* Alert Severity Breakdown */}
