@@ -3,6 +3,10 @@
 import { scanRepoForSecrets, type SecretFinding } from "./secret-scanner";
 import { scanRepoForDependencies, type DependencyFinding } from "./dependency-scanner";
 import { scanRepoForSast, type SastFinding } from "./sast-scanner";
+import { scanWithTruffleHog } from "./trufflehog-scanner";
+import { scanWithGitleaks } from "./gitleaks-scanner";
+import { scanWithTrivy } from "./trivy-scanner";
+import { scanWithVirusTotal } from "./virustotal-scanner";
 
 export type Finding = {
   rule: string;
@@ -29,20 +33,48 @@ export type ScanResult = {
 export async function runScan(
   scanType: string,
   repoFullName: string,
-  token: string
+  token: string,
+  isDockerImage: boolean = false
 ): Promise<ScanResult> {
   let allFindings: Finding[] = [];
 
+  // Basic secret scan (regex-based)
   if (scanType === "secret-scan" || scanType === "full") {
     const secrets = await scanRepoForSecrets(repoFullName, token);
     allFindings.push(...secrets);
   }
 
+  // TruffleHog - Advanced secret detection
+  if (scanType === "trufflehog" || scanType === "full") {
+    const result = await scanWithTruffleHog(repoFullName, token);
+    allFindings.push(...result.findings);
+  }
+
+  // Gitleaks - Docker image secret scan
+  if (scanType === "gitleaks" && isDockerImage) {
+    const result = await scanWithGitleaks(repoFullName);
+    allFindings.push(...result.findings);
+  }
+
+  // Trivy - CVE and vulnerability scanning
+  if (scanType === "trivy" || scanType === "full") {
+    const result = await scanWithTrivy(repoFullName, isDockerImage);
+    allFindings.push(...result.findings);
+  }
+
+  // VirusTotal - Malware detection
+  if (scanType === "malware" || scanType === "full") {
+    const result = await scanWithVirusTotal(repoFullName, token);
+    allFindings.push(...result.findings);
+  }
+
+  // Dependency audit (OSV.dev)
   if (scanType === "dependency" || scanType === "full") {
     const deps = await scanRepoForDependencies(repoFullName, token);
     allFindings.push(...deps);
   }
 
+  // SAST - Static analysis
   if (scanType === "sast" || scanType === "full") {
     const sast = await scanRepoForSast(repoFullName, token);
     allFindings.push(...sast);
