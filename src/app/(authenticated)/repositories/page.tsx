@@ -2,11 +2,12 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GitBranch, ExternalLink, Container } from "lucide-react";
+import { GitBranch, ExternalLink, Container, CheckCircle2, XCircle, Clock, AlertCircle } from "lucide-react";
 import { RefreshReposButton } from "@/components/refresh-repos-button";
 import { ConnectGitHubButton } from "@/components/connect-github-button";
 import { ConnectDockerButton } from "@/components/connect-docker-button";
 import { ScanRepoButton } from "@/components/scan-repo-button";
+import { ClearAllReposButton } from "@/components/clear-all-repos-button";
 
 export default async function RepositoriesPage() {
   const user = await getCurrentUser();
@@ -17,6 +18,11 @@ export default async function RepositoriesPage() {
     orderBy: { updatedAt: "desc" },
     include: {
       _count: { select: { scans: true } },
+      scans: {
+        orderBy: { startedAt: "desc" },
+        take: 1,
+        select: { status: true, startedAt: true },
+      },
     },
   });
 
@@ -25,6 +31,11 @@ export default async function RepositoriesPage() {
     orderBy: { updatedAt: "desc" },
     include: {
       _count: { select: { scans: true } },
+      scans: {
+        orderBy: { startedAt: "desc" },
+        take: 1,
+        select: { status: true, startedAt: true },
+      },
     },
   });
 
@@ -46,10 +57,13 @@ export default async function RepositoriesPage() {
 
       {/* GitHub Repos */}
       <div>
-        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-          <GitBranch className="h-5 w-5" />
-          GitHub Repositories ({repos.length})
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <GitBranch className="h-5 w-5" />
+            GitHub Repositories ({repos.length})
+          </h3>
+          <ClearAllReposButton count={repos.length} type="github" />
+        </div>
         {repos.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
@@ -78,8 +92,26 @@ export default async function RepositoriesPage() {
                     {repo.language && <span>{repo.language}</span>}
                     {repo.defaultBranch && <span>· {repo.defaultBranch}</span>}
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{repo._count.scans} scans</span>
+                  <div className="mt-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-muted-foreground">{repo._count.scans} scans</span>
+                      {repo.scans[0] && (
+                        <div className="flex items-center gap-1">
+                          {repo.scans[0].status === "completed" && (
+                            <CheckCircle2 className="h-3 w-3 text-green-500" />
+                          )}
+                          {repo.scans[0].status === "failed" && (
+                            <XCircle className="h-3 w-3 text-red-500" />
+                          )}
+                          {repo.scans[0].status === "running" && (
+                            <Clock className="h-3 w-3 text-blue-500 animate-pulse" />
+                          )}
+                          {repo.scans[0].status === "pending" && (
+                            <AlertCircle className="h-3 w-3 text-yellow-500" />
+                          )}
+                        </div>
+                      )}
+                    </div>
                     <ScanRepoButton repoId={repo.id} repoName={repo.fullName} />
                   </div>
                   {repo.lastScanned && (
@@ -94,10 +126,13 @@ export default async function RepositoriesPage() {
 
       {/* Docker Images */}
       <div>
-        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-          <Container className="h-5 w-5" />
-          Docker Images ({images.length})
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Container className="h-5 w-5" />
+            Docker Images ({images.length})
+          </h3>
+          <ClearAllReposButton count={images.length} type="docker" />
+        </div>
         {images.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
@@ -125,8 +160,26 @@ export default async function RepositoriesPage() {
                     </Badge>
                     <span>{image.repository}</span>
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{image._count.scans} scans</span>
+                  <div className="mt-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-muted-foreground">{image._count.scans} scans</span>
+                      {image.scans[0] && (
+                        <div className="flex items-center gap-1">
+                          {image.scans[0].status === "completed" && (
+                            <CheckCircle2 className="h-3 w-3 text-green-500" />
+                          )}
+                          {image.scans[0].status === "failed" && (
+                            <XCircle className="h-3 w-3 text-red-500" />
+                          )}
+                          {image.scans[0].status === "running" && (
+                            <Clock className="h-3 w-3 text-blue-500 animate-pulse" />
+                          )}
+                          {image.scans[0].status === "pending" && (
+                            <AlertCircle className="h-3 w-3 text-yellow-500" />
+                          )}
+                        </div>
+                      )}
+                    </div>
                     <ScanRepoButton repoId={image.id} repoName={image.imageName} />
                   </div>
                   {image.lastScanned && (
