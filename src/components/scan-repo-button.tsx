@@ -132,19 +132,25 @@ export function ScanRepoButton({ repoId, repoName }: { repoId: string; repoName:
           <DropdownMenuSeparator />
           {SCAN_TYPES.map((type) => {
             const Icon = type.icon;
+            const isSelected = loading === type.value;
             return (
               <DropdownMenuItem
                 key={type.value}
                 onClick={() => triggerScan(type.value)}
-                disabled={loading !== null}
-                className="cursor-pointer"
+                disabled={!!loading}
+                className="cursor-pointer py-3 hover:bg-green-500/10 hover:border-l-2 hover:border-green-500 transition-all duration-200"
               >
                 <div className="flex items-start gap-3 w-full">
-                  <Icon className={`h-4 w-4 mt-0.5 ${type.color}`} />
+                  <Icon className={`h-4 w-4 mt-0.5 ${type.color} ${isSelected ? 'animate-pulse' : ''}`} />
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{type.label}</span>
-                      <Badge variant="outline" className="text-xs">{type.badge}</Badge>
+                      <span className={`font-medium text-sm ${isSelected ? 'text-green-500' : ''}`}>{type.label}</span>
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs ${isSelected ? 'bg-green-500/20 border-green-500 text-green-500' : ''}`}
+                      >
+                        {type.badge}
+                      </Badge>
                     </div>
                     <div className="text-xs text-muted-foreground mt-0.5">{type.desc}</div>
                   </div>
