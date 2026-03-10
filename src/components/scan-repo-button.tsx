@@ -16,12 +16,20 @@ import { Badge } from "@/components/ui/badge";
 
 const SCAN_TYPES = [
   { 
-    value: "secret-scan", 
-    label: "Secret Scan", 
-    desc: "Detect leaked secrets, API keys & credentials",
+    value: "trufflehog", 
+    label: "TruffleHog Scan", 
+    desc: "Advanced secret detection with entropy analysis",
     icon: Key,
     color: "text-red-500",
-    badge: "Secrets"
+    badge: "Secrets+"
+  },
+  { 
+    value: "trivy", 
+    label: "Trivy CVE Scan", 
+    desc: "Detect known vulnerabilities (CVEs) in dependencies",
+    icon: Shield,
+    color: "text-amber-500",
+    badge: "CVE"
   },
   { 
     value: "sast", 
@@ -32,14 +40,6 @@ const SCAN_TYPES = [
     badge: "SAST"
   },
   { 
-    value: "dependency", 
-    label: "Dependency Audit", 
-    desc: "Check packages for known vulnerabilities (OSV.dev)",
-    icon: Package,
-    color: "text-purple-500",
-    badge: "Dependencies"
-  },
-  { 
     value: "malware", 
     label: "Malware Scan", 
     desc: "Detect malicious code patterns & threats",
@@ -48,12 +48,20 @@ const SCAN_TYPES = [
     badge: "Malware"
   },
   { 
+    value: "dependency", 
+    label: "Dependency Audit", 
+    desc: "Check packages for known vulnerabilities (OSV.dev)",
+    icon: Package,
+    color: "text-purple-500",
+    badge: "Dependencies"
+  },
+  { 
     value: "full", 
     label: "Full Security Scan", 
     desc: "Run all security scans (recommended)",
     icon: Shield,
     color: "text-emerald-500",
-    badge: "All"
+    badge: "Complete"
   },
 ];
 
@@ -116,7 +124,7 @@ export function ScanRepoButton({ repoId, repoName }: { repoId: string; repoName:
             <ChevronDown className="h-3 w-3" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-72">
+        <DropdownMenuContent align="end" className="w-80">
           <DropdownMenuLabel className="text-xs truncate flex items-center gap-2">
             <Zap className="h-3 w-3" />
             {repoName}
