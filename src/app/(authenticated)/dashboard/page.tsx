@@ -8,6 +8,10 @@ import { SecurityScoreWidget } from "@/components/security-score-widget";
 import { ScanTrendChart } from "@/components/scan-trend-chart";
 import { formatDateShort } from "@/lib/format-date";
 
+// Force dynamic rendering for authentication
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function DashboardPage() {
   try {
     const user = await getCurrentUser();

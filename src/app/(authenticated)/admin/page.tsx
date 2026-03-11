@@ -13,6 +13,10 @@ import {
 } from "@/components/ui/table";
 import { Users, Activity, FileText } from "lucide-react";
 
+// Force dynamic rendering for authentication
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminPage() {
   const user = await getCurrentUser();
   if (!user || !hasRole(user.role, ["admin"])) {

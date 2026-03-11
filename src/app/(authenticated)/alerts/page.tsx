@@ -16,6 +16,10 @@ import { SeverityRingChart } from "@/components/severity-ring-chart";
 import { AlertStatsCards } from "@/components/alert-stats-cards";
 import { formatDateShort } from "@/lib/format-date";
 
+// Force dynamic rendering for authentication
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const severityColors: Record<string, string> = {
   critical: "destructive",
   high: "destructive",

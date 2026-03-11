@@ -10,6 +10,10 @@ import { ScanRepoButton } from "@/components/scan-repo-button";
 import { ClearAllReposButton } from "@/components/clear-all-repos-button";
 import { formatDateShort } from "@/lib/format-date";
 
+// Force dynamic rendering for authentication
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function RepositoriesPage() {
   const user = await getCurrentUser();
   if (!user) return null;
